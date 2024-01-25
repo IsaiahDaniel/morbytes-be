@@ -3,7 +3,6 @@ import ErrorResponse from "../messages/ErrorMessage";
 import AWS from "aws-sdk";
 import { v4 as uuidv4 } from "uuid";
 import Series from "../models/Series";
-import { PaginateQuery } from "../interfaces/IPaginate";
 
 // @route   GET /api/v1/series
 // @desc    Get All series
@@ -66,8 +65,6 @@ const createSeries = asyncHandler(async (req, res, next) => {
     );
   }
 
-  console.log("req.file create series", req.file);
-
   if (!req.file) {
     return next(new ErrorResponse(`Please Upload a file`, 400));
   }
@@ -115,9 +112,6 @@ const updateSeries = asyncHandler(async (req, res, next) => {
   if (!season_number || !title) {
     return next(new ErrorResponse(`Season Number and title is required`, 400));
   }
-
-  console.log("req.files", req.files);
-  // console.log("req.file", req.file);
 
   if ((!req.files as any)?.video || (!req.files as any).subtitle) {
     return next(new ErrorResponse(`Please upload a video and subtitle`, 400));
@@ -190,8 +184,7 @@ const updateSeries = asyncHandler(async (req, res, next) => {
 // @desc    Add Episodes to a season
 // @access  Private
 const updateSeasonEpisodes = asyncHandler(async (req, res, next) => {
-  console.log("season update", req.body);
-
+ 
   const { title } = req.body;
 
   if (!title) {
@@ -257,7 +250,7 @@ const updateSeasonEpisodes = asyncHandler(async (req, res, next) => {
   const series = await Series.findOne({ _id: seriesId });
 
   const selectedSeason = series?.seasons.find(
-    (season) => season._id == seasonId
+    (season: any) => season._id == seasonId
   );
 
   if (!selectedSeason) {

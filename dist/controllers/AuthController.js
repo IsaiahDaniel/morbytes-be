@@ -108,7 +108,7 @@ const forgetPassword = (0, express_async_handler_1.default)((req, res, next) => 
             subject: "Password Reset Request",
             body: passwordResetTemplate,
         });
-        res.status(200).json({ success: true, data: "Email sent" });
+        res.status(200).json({ success: true, data: "Email sent", resetToken: resetToken });
     }
     catch (err) {
         user.resetPasswordToken = undefined;

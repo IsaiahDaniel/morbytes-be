@@ -11,6 +11,7 @@ const db_1 = __importDefault(require("./config/db"));
 const AuthRoute_1 = __importDefault(require("./routes/AuthRoute"));
 const SeriesRoute_1 = __importDefault(require("./routes/SeriesRoute"));
 const MovieRoute_1 = __importDefault(require("./routes/MovieRoute"));
+const SongRoute_1 = __importDefault(require("./routes/SongRoute"));
 const error_1 = __importDefault(require("./middleware/error"));
 const app = (0, express_1.default)();
 dotenv_1.default.config();
@@ -29,6 +30,7 @@ app.get('/', (req, res) => {
 app.use("/api/v1/auth", AuthRoute_1.default);
 app.use("/api/v1/series", SeriesRoute_1.default);
 app.use("/api/v1/movies", MovieRoute_1.default);
+app.use("/api/v1/songs", SongRoute_1.default);
 app.use(error_1.default);
 // Export the Express app instance
 exports.default = app;

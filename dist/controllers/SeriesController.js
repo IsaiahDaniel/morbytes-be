@@ -62,7 +62,6 @@ const createSeries = (0, express_async_handler_1.default)((req, res, next) => __
     if (!series_description || !series_title) {
         return next(new ErrorMessage_1.default(`Series Description and Series title is required`, 400));
     }
-    console.log("req.file create series", req.file);
     if (!req.file) {
         return next(new ErrorMessage_1.default(`Please Upload a file`, 400));
     }
@@ -103,8 +102,6 @@ const updateSeries = (0, express_async_handler_1.default)((req, res, next) => __
     if (!season_number || !title) {
         return next(new ErrorMessage_1.default(`Season Number and title is required`, 400));
     }
-    console.log("req.files", req.files);
-    // console.log("req.file", req.file);
     if (((_a = (!req.files)) === null || _a === void 0 ? void 0 : _a.video) || (!req.files).subtitle) {
         return next(new ErrorMessage_1.default(`Please upload a video and subtitle`, 400));
     }
@@ -157,7 +154,6 @@ exports.updateSeries = updateSeries;
 // @access  Private
 const updateSeasonEpisodes = (0, express_async_handler_1.default)((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     var _d, _e, _f, _g, _h;
-    console.log("season update", req.body);
     const { title } = req.body;
     if (!title) {
         return next(new ErrorMessage_1.default(`Episode Title is required`, 400));

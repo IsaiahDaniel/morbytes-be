@@ -10,6 +10,7 @@ import connectDB from "./config/db";
 import AuthRoute from "./routes/AuthRoute";
 import SeriesRoute from "./routes/SeriesRoute";
 import MoviesRoute from "./routes/MovieRoute";
+import SongRoute from "./routes/SongRoute";
 
 import errorHandler from "./middleware/error";
 
@@ -37,6 +38,7 @@ app.get('/', (req: Request, res: Response) => {
 app.use("/api/v1/auth", AuthRoute);
 app.use("/api/v1/series", SeriesRoute);
 app.use("/api/v1/movies", MoviesRoute);
+app.use("/api/v1/songs", SongRoute);
 
 app.use(errorHandler);
 

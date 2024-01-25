@@ -137,7 +137,7 @@ const forgetPassword = asyncHandler(async (req, res, next) => {
       body: passwordResetTemplate,
     });
 
-    res.status(200).json({ success: true, data: "Email sent" });
+    res.status(200).json({ success: true, data: "Email sent", resetToken: resetToken  });
   } catch (err) {
     user.resetPasswordToken = undefined;
     user.resetPasswordExpire = undefined;
