@@ -12,12 +12,12 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.updateSeasonEpisodes = exports.getAllSeries = exports.getSeries = exports.updateSeries = exports.createSeries = void 0;
+exports.getAllSeriesByGenre = exports.getSeriesBySeason = exports.searchSeries = exports.updateSeasonEpisodes = exports.getAllSeries = exports.getSeries = exports.updateSeries = exports.createSeries = void 0;
 const express_async_handler_1 = __importDefault(require("express-async-handler"));
 const ErrorMessage_1 = __importDefault(require("../messages/ErrorMessage"));
 const aws_sdk_1 = __importDefault(require("aws-sdk"));
 const uuid_1 = require("uuid");
-const Series_1 = __importDefault(require("../models/Series"));
+const Series_1 = __importDefault(require("../models/Series/Series"));
 // @route   GET /api/v1/series
 // @desc    Get All series
 // @access  Private
@@ -42,6 +42,20 @@ const getAllSeries = (0, express_async_handler_1.default)((req, res, next) => __
     });
 }));
 exports.getAllSeries = getAllSeries;
+// @route   GET /api/v1/movies/genre/:genre
+// @desc    Get All Movies
+// @access  Public
+const getAllSeriesByGenre = (0, express_async_handler_1.default)((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    // const { limit = 10 } = req.query;
+    const limit = typeof req.query.limit === 'string' ? parseInt(req.query.limit, 10) : 10;
+    const movies = yield Series_1.default.find({ genre: req.params.genre }).limit(limit);
+    res.status(200).json({
+        success: true,
+        count: movies.length,
+        data: movies,
+    });
+}));
+exports.getAllSeriesByGenre = getAllSeriesByGenre;
 // @route   GET /api/v1/series
 // @desc    Get A serie
 // @access  Private
@@ -213,3 +227,36 @@ const updateSeasonEpisodes = (0, express_async_handler_1.default)((req, res, nex
     res.status(200).send({ success: true, data: series });
 }));
 exports.updateSeasonEpisodes = updateSeasonEpisodes;
+// @route   GET /api/v1/series/search?title='Avatar'
+// @desc    Add Episodes to a season
+// @access  Private
+const searchSeries = (0, express_async_handler_1.default)((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    const { title } = req.query;
+    const regexPattern = new RegExp(String(title), "i");
+    const series = yield Series_1.default.find({ series_title: regexPattern });
+    res.status(200).json({
+        success: true,
+        count: series.length,
+        data: series,
+    });
+}));
+exports.searchSeries = searchSeries;
+// @route   GET /api/v1/series/bySeason/:seasonId
+// @desc    Get Season Episodes by a season
+// @access  Public
+const getSeriesBySeason = (0, express_async_handler_1.default)((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    const { seriesId } = req.params;
+    if (!seriesId) {
+        return next(new ErrorMessage_1.default(`No series with the id ${seriesId} was found`, 400));
+    }
+    const series = yield Series_1.default.find({
+        _id: seriesId,
+        'seasons': { $elemMatch: { 'season_number': req.body.seasonNumber } }
+    });
+    res.status(200).json({
+        success: true,
+        count: series.length,
+        data: series,
+    });
+}));
+exports.getSeriesBySeason = getSeriesBySeason;

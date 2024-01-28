@@ -7,7 +7,7 @@ const episodeSchema = new Schema({
   episode_subtitle: String,
 });
 
-const seriesSchema = new Schema({
+const seriesSchema: any = new Schema({
   series_title: {
     type: String,
     required: [true, "Series Title is required"],
@@ -15,6 +15,10 @@ const seriesSchema = new Schema({
   series_description: {
     type: String,
     required: [true, "Series Description is required"],
+  },
+  genre: {
+    type: String,
+    required: [true, "Series Genre is required"],
   },
   seasons: [
     {

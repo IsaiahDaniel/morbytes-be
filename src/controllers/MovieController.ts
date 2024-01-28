@@ -2,27 +2,68 @@ import asyncHandler from "express-async-handler";
 import ErrorResponse from "../messages/ErrorMessage";
 import { v4 as uuidv4 } from "uuid";
 import AWS from "aws-sdk";
-import Movie from "../models/Movie";
+import Movie from "../models/movies/Movie";
 
+// @route   GET /api/v1/movies
+// @desc    Get All Movies
+// @access  Public
 const getAllMovies = asyncHandler(async (req, res, next) => {
-  const movies = await Movie.find();
+  const { page = 1, limit = 10 } = req.query;
 
-  res.json({ success: true, data: movies });
+  const options = {
+    page: parseInt(String(page), 10),
+    limit: parseInt(String(limit), 10),
+  };
 
+  const result = await Movie.paginate({}, options);
+
+  res.status(200).json({
+    success: true,
+    data: result.docs,
+    totalPages: result.totalPages,
+    currentPage: result.page,
+    totalCount: result.totalDocs,
+  });
 });
 
+// @route   GET /api/v1/movies/genre/:genre
+// @desc    Get All Movies
+// @access  Public
+const getAllMoviesByGenre = asyncHandler(async (req, res, next) => {
+  // const { limit = 10 } = req.query;
+
+  const limit: number = typeof req.query.limit === 'string' ? parseInt(req.query.limit, 10) : 10;
+
+  const movies = await Movie.find({ genre: req.params.genre }).limit(limit);
+
+  res.status(200).json({
+    success: true,
+    count: movies.length,
+    data: movies,
+  });
+});
+
+// @route   GET /api/v1/movies/:id
+// @desc    Get Single Movie
+// @access  Public
 const getMovie = asyncHandler(async (req, res, next) => {
   const movie = await Movie.findOne({ _id: req.params.movieId });
 
-  res.json({ success: true, data: movie });
+  if(!movie){
+    return next(new ErrorResponse(`No movie with the id ${req.params.movieId} was found`, 400))
+  }
 
+  res.json({ success: true, data: movie });
 });
 
+// @route   POST /api/v1/movies/
+// @desc    Create Movie
+// @access  Public
 const createMovie = asyncHandler(async (req, res, next) => {
-  const { title, description } = req.body;
+  const { title, description, genre } = req.body;
 
-  if (!title || !description) {
-    return next(new ErrorResponse(`Title and Description is required`, 400));
+  if (!title || !description || !genre) {
+    return next(new ErrorResponse(`Title, Genre and Description is required`, 400));
   }
 
   let posterUrl, videoUrl, subtitleUrl;
@@ -41,7 +82,6 @@ const createMovie = asyncHandler(async (req, res, next) => {
   const subtitlefileExt = subtitlefile[subtitlefile.length - 1];
   const videofileExt = videofile[videofile.length - 1];
 
-
   if ((req.files as any).poster) {
     const moviePosterParams: any = {
       Bucket: process.env.S3_BUCKET_NAME,
@@ -50,7 +90,9 @@ const createMovie = asyncHandler(async (req, res, next) => {
       ContentType: (req.files as any).poster[0].mimetype,
     };
 
-    const videoPosterUploadResult = await s3.upload(moviePosterParams).promise();
+    const videoPosterUploadResult = await s3
+      .upload(moviePosterParams)
+      .promise();
     posterUrl = videoPosterUploadResult.Location;
   }
 
@@ -83,13 +125,49 @@ const createMovie = asyncHandler(async (req, res, next) => {
     description,
     poster: posterUrl,
     videoUrl: videoUrl,
-    subtitle: subtitleUrl
-  }
+    subtitle: subtitleUrl,
+  };
 
   const movie = await Movie.create(movieData);
 
   res.status(200).json({ success: true, data: movie });
-
 });
 
-export { createMovie, getAllMovies, getMovie };
+// @route   GET /api/v1/movies/search?title='A title'
+// @desc    Get Single Movies
+// @access  Public
+const searchMovie = asyncHandler(async (req, res, next) => {
+  const { title } = req.query;
+
+  const regexPattern = new RegExp(String(title), "i");
+
+  const movie = await Movie.find({ title: regexPattern });
+
+  res.status(200).json({ success: true, data: movie });
+});
+
+// @route   GET /api/v1/movies/comment/:movieId
+// @desc    Add Comment to a Movie
+// @access  Public
+
+const addCommentToMovie = asyncHandler(async (req, res, next) => {
+  const { movieId } = req.params;
+
+  const commentData = {
+    comment: req.body.comment
+  }
+
+  const movie = await Movie.findById({ _id: movieId });
+
+  if(!movie){
+    return next(new ErrorResponse(`Movie with id ${movieId} not found`, 400));
+  }
+
+  movie.comments.unshift(commentData);
+
+  const updatedMovie = await movie.save();
+
+  res.status(200).json({ success: true, data: updatedMovie });
+});
+
+export { createMovie, getAllMovies, getMovie, searchMovie, getAllMoviesByGenre, addCommentToMovie };

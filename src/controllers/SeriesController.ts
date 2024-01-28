@@ -2,7 +2,7 @@ import asyncHandler from "express-async-handler";
 import ErrorResponse from "../messages/ErrorMessage";
 import AWS from "aws-sdk";
 import { v4 as uuidv4 } from "uuid";
-import Series from "../models/Series";
+import Series from "../models/Series/Series";
 
 // @route   GET /api/v1/series
 // @desc    Get All series
@@ -30,6 +30,23 @@ const getAllSeries = asyncHandler(async (req, res, next) => {
     totalPages: result.totalPages,
     currentPage: result.page,
     totalCount: result.totalDocs,
+  });
+});
+
+// @route   GET /api/v1/movies/genre/:genre
+// @desc    Get All Movies
+// @access  Public
+const getAllSeriesByGenre = asyncHandler(async (req, res, next) => {
+  // const { limit = 10 } = req.query;
+
+  const limit: number = typeof req.query.limit === 'string' ? parseInt(req.query.limit, 10) : 10;
+
+  const movies = await Series.find({ genre: req.params.genre }).limit(limit);
+
+  res.status(200).json({
+    success: true,
+    count: movies.length,
+    data: movies,
   });
 });
 
@@ -249,7 +266,7 @@ const updateSeasonEpisodes = asyncHandler(async (req, res, next) => {
 
   const series = await Series.findOne({ _id: seriesId });
 
-  const selectedSeason = series?.seasons.find(
+  const selectedSeason: any = series?.seasons.find(
     (season: any) => season._id == seasonId
   );
 
@@ -271,10 +288,55 @@ const updateSeasonEpisodes = asyncHandler(async (req, res, next) => {
 
 });
 
+// @route   GET /api/v1/series/search?title='Avatar'
+// @desc    Add Episodes to a season
+// @access  Private
+const searchSeries = asyncHandler(async (req, res, next) => {
+  const { title } = req.query;
+
+  const regexPattern = new RegExp(String(title), "i");
+
+  const series = await Series.find({ series_title: regexPattern });
+
+  res.status(200).json({
+    success: true,
+    count: series.length,
+    data: series,
+  })
+
+});
+
+// @route   GET /api/v1/series/bySeason/:seasonId
+// @desc    Get Season Episodes by a season
+// @access  Public
+
+const getSeriesBySeason = asyncHandler(async (req, res, next) => {
+  const { seriesId } = req.params;
+
+  if(!seriesId){
+    return next(new ErrorResponse(`No series with the id ${seriesId} was found`, 400))
+  }
+
+  const series = await Series.find({
+    _id: seriesId, 
+    'seasons': { $elemMatch: { 'season_number': req.body.seasonNumber }}
+  });
+
+  res.status(200).json({
+    success: true,
+    count: series.length,
+    data: series,
+  });
+
+});
+
 export {
   createSeries,
   updateSeries,
   getSeries,
   getAllSeries,
   updateSeasonEpisodes,
+  searchSeries,
+  getSeriesBySeason,
+  getAllSeriesByGenre
 };

@@ -16,7 +16,7 @@ exports.resetPassword = exports.activateAccount = exports.forgetPassword = expor
 const express_async_handler_1 = __importDefault(require("express-async-handler"));
 const ErrorMessage_1 = __importDefault(require("../messages/ErrorMessage"));
 const TokenService_1 = __importDefault(require("../services/TokenService"));
-const User_1 = __importDefault(require("../models/User"));
+const User_1 = __importDefault(require("../models/Users/User"));
 const EmailService_1 = __importDefault(require("../services/EmailService"));
 const crypto_1 = __importDefault(require("crypto"));
 const templates_1 = require("../lib/templates");

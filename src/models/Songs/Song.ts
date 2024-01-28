@@ -11,6 +11,10 @@ const SongSchema = new Schema({
     type: String,
     required: [true, "Song Title is required"],
   },
+  artist: {
+    type: String,
+    required: [true, "Artist is required"],
+  },
   genre: {
     type: String,
     required: [true, "Song Genre is required"],

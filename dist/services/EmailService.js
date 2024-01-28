@@ -49,8 +49,6 @@ const ses = new aws.SES({
     credentials: {
         accessKeyId: ACCESS_KEY,
         secretAccessKey: SECRET_KEY,
-        // accessKeyId: "AKIA35W4S65E53COPWP4",
-        // secretAccessKey: "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",
     },
 });
 const transporter = nodemailer_1.default.createTransport({

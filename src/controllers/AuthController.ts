@@ -3,7 +3,7 @@ import asyncHandler from "express-async-handler";
 
 import ErrorResponse from "../messages/ErrorMessage";
 import generateToken from "../services/TokenService";
-import User from "../models/User";
+import User from "../models/Users/User";
 import sendEmail from "../services/EmailService";
 import crypto from "crypto";
 import { forgotPasswordTemplate, verifyEmailTemplate } from "../lib/templates";

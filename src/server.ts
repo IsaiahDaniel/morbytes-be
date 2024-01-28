@@ -35,10 +35,17 @@ app.get('/', (req: Request, res: Response) => {
   res.send('Hello, World!');
 });
 
+// App Endpoints
 app.use("/api/v1/auth", AuthRoute);
 app.use("/api/v1/series", SeriesRoute);
 app.use("/api/v1/movies", MoviesRoute);
 app.use("/api/v1/songs", SongRoute);
+
+// Admin Endpoints
+app.use("/api/v1/admin/auth", AuthRoute);
+app.use("/api/v1/admin/series", SeriesRoute);
+app.use("/api/v1/admin/movies", MoviesRoute);
+app.use("/api/v1/admin/songs", SongRoute);
 
 app.use(errorHandler);
 

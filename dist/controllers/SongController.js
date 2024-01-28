@@ -12,9 +12,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.createSong = exports.deleteSong = exports.updateSong = exports.getSong = exports.getSongs = void 0;
+exports.searchSong = exports.createSong = exports.deleteSong = exports.updateSong = exports.getSong = exports.getSongs = void 0;
 const express_async_handler_1 = __importDefault(require("express-async-handler"));
-const Song_1 = __importDefault(require("../models/Song"));
+const Song_1 = __importDefault(require("../models/Songs/Song"));
 const aws_sdk_1 = __importDefault(require("aws-sdk"));
 const ErrorMessage_1 = __importDefault(require("../messages/ErrorMessage"));
 const uuid_1 = require("uuid");
@@ -80,7 +80,7 @@ exports.deleteSong = deleteSong;
 // @access  Public
 const createSong = (0, express_async_handler_1.default)((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     var _a, _b;
-    const { type, title, genre } = req.body;
+    const { type, title, genre, artist } = req.body;
     const s3 = new aws_sdk_1.default.S3({
         accessKeyId: process.env.AWS_ACCESS_KEY_ID,
         secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
@@ -118,6 +118,7 @@ const createSong = (0, express_async_handler_1.default)((req, res, next) => __aw
         type,
         title,
         genre,
+        artist,
         songUrl: audioUrl,
         image: imageUrl,
     };
@@ -125,3 +126,13 @@ const createSong = (0, express_async_handler_1.default)((req, res, next) => __aw
     res.status(200).json({ success: true, data: song });
 }));
 exports.createSong = createSong;
+// @route   GET /api/v1/songs/search?title='loving you'
+// @desc    Search For a Song
+// @access  Public
+const searchSong = (0, express_async_handler_1.default)((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    const title = req.query.title;
+    const regexPattern = new RegExp(String(title), "i");
+    const song = yield Song_1.default.find({ title: regexPattern });
+    res.status(200).json({ success: true, data: song });
+}));
+exports.searchSong = searchSong;

@@ -5,6 +5,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const mongoose_1 = require("mongoose");
 const mongoose_paginate_v2_1 = __importDefault(require("mongoose-paginate-v2"));
+const commentSchema = new mongoose_1.Schema({
+    comment: String
+});
 const MovieSchema = new mongoose_1.Schema({
     title: {
         type: String,
@@ -18,6 +21,7 @@ const MovieSchema = new mongoose_1.Schema({
         type: String,
         required: [true, "Movie Genre is required"],
     },
+    comments: [commentSchema],
     videoUrl: String,
     subtitle: String,
     poster: String,

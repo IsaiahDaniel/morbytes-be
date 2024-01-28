@@ -12,27 +12,64 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getMovie = exports.getAllMovies = exports.createMovie = void 0;
+exports.addCommentToMovie = exports.getAllMoviesByGenre = exports.searchMovie = exports.getMovie = exports.getAllMovies = exports.createMovie = void 0;
 const express_async_handler_1 = __importDefault(require("express-async-handler"));
 const ErrorMessage_1 = __importDefault(require("../messages/ErrorMessage"));
 const uuid_1 = require("uuid");
 const aws_sdk_1 = __importDefault(require("aws-sdk"));
-const Movie_1 = __importDefault(require("../models/Movie"));
+const Movie_1 = __importDefault(require("../models/movies/Movie"));
+// @route   GET /api/v1/movies
+// @desc    Get All Movies
+// @access  Public
 const getAllMovies = (0, express_async_handler_1.default)((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-    const movies = yield Movie_1.default.find();
-    res.json({ success: true, data: movies });
+    const { page = 1, limit = 10 } = req.query;
+    const options = {
+        page: parseInt(String(page), 10),
+        limit: parseInt(String(limit), 10),
+    };
+    const result = yield Movie_1.default.paginate({}, options);
+    res.status(200).json({
+        success: true,
+        data: result.docs,
+        totalPages: result.totalPages,
+        currentPage: result.page,
+        totalCount: result.totalDocs,
+    });
 }));
 exports.getAllMovies = getAllMovies;
+// @route   GET /api/v1/movies/genre/:genre
+// @desc    Get All Movies
+// @access  Public
+const getAllMoviesByGenre = (0, express_async_handler_1.default)((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    // const { limit = 10 } = req.query;
+    const limit = typeof req.query.limit === 'string' ? parseInt(req.query.limit, 10) : 10;
+    const movies = yield Movie_1.default.find({ genre: req.params.genre }).limit(limit);
+    res.status(200).json({
+        success: true,
+        count: movies.length,
+        data: movies,
+    });
+}));
+exports.getAllMoviesByGenre = getAllMoviesByGenre;
+// @route   GET /api/v1/movies/:id
+// @desc    Get Single Movie
+// @access  Public
 const getMovie = (0, express_async_handler_1.default)((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     const movie = yield Movie_1.default.findOne({ _id: req.params.movieId });
+    if (!movie) {
+        return next(new ErrorMessage_1.default(`No movie with the id ${req.params.movieId} was found`, 400));
+    }
     res.json({ success: true, data: movie });
 }));
 exports.getMovie = getMovie;
+// @route   POST /api/v1/movies/
+// @desc    Create Movie
+// @access  Public
 const createMovie = (0, express_async_handler_1.default)((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     var _a, _b, _c;
-    const { title, description } = req.body;
-    if (!title || !description) {
-        return next(new ErrorMessage_1.default(`Title and Description is required`, 400));
+    const { title, description, genre } = req.body;
+    if (!title || !description || !genre) {
+        return next(new ErrorMessage_1.default(`Title, Genre and Description is required`, 400));
     }
     let posterUrl, videoUrl, subtitleUrl;
     const s3 = new aws_sdk_1.default.S3({
@@ -53,7 +90,9 @@ const createMovie = (0, express_async_handler_1.default)((req, res, next) => __a
             Body: req.files.poster[0].buffer,
             ContentType: req.files.poster[0].mimetype,
         };
-        const videoPosterUploadResult = yield s3.upload(moviePosterParams).promise();
+        const videoPosterUploadResult = yield s3
+            .upload(moviePosterParams)
+            .promise();
         posterUrl = videoPosterUploadResult.Location;
     }
     if (req.files.subtitle) {
@@ -81,9 +120,36 @@ const createMovie = (0, express_async_handler_1.default)((req, res, next) => __a
         description,
         poster: posterUrl,
         videoUrl: videoUrl,
-        subtitle: subtitleUrl
+        subtitle: subtitleUrl,
     };
     const movie = yield Movie_1.default.create(movieData);
     res.status(200).json({ success: true, data: movie });
 }));
 exports.createMovie = createMovie;
+// @route   GET /api/v1/movies/search?title='A title'
+// @desc    Get Single Movies
+// @access  Public
+const searchMovie = (0, express_async_handler_1.default)((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    const { title } = req.query;
+    const regexPattern = new RegExp(String(title), "i");
+    const movie = yield Movie_1.default.find({ title: regexPattern });
+    res.status(200).json({ success: true, data: movie });
+}));
+exports.searchMovie = searchMovie;
+// @route   GET /api/v1/movies/comment/:movieId
+// @desc    Add Comment to a Movie
+// @access  Public
+const addCommentToMovie = (0, express_async_handler_1.default)((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    const { movieId } = req.params;
+    const commentData = {
+        comment: req.body.comment
+    };
+    const movie = yield Movie_1.default.findById({ _id: movieId });
+    if (!movie) {
+        return next(new ErrorMessage_1.default(`Movie with id ${movieId} not found`, 400));
+    }
+    movie.comments.unshift(commentData);
+    const updatedMovie = yield movie.save();
+    res.status(200).json({ success: true, data: updatedMovie });
+}));
+exports.addCommentToMovie = addCommentToMovie;

@@ -8,6 +8,7 @@ const SongController_1 = require("../controllers/SongController");
 const multer_1 = __importDefault(require("../middleware/multer"));
 const router = express_1.default.Router();
 router.get("/", SongController_1.getSongs);
+router.get("/search", SongController_1.searchSong);
 router.post("/", multer_1.default.fields([{ name: "audio" }, { name: "image" }]), SongController_1.createSong);
 router.get("/:id", SongController_1.getSong);
 router.patch("/:id", SongController_1.updateSong);

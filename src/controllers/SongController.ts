@@ -1,5 +1,5 @@
 import asyncHandler from "express-async-handler";
-import Song from "../models/Song";
+import Song from "../models/Songs/Song";
 import AWS from "aws-sdk";
 import ErrorResponse from "../messages/ErrorMessage";
 import { v4 as uuidv4 } from "uuid";
@@ -90,7 +90,7 @@ const deleteSong = asyncHandler(async (req, res, next) => {
 // @access  Public
 
 const createSong = asyncHandler(async (req, res, next) => {
-  const { type, title, genre } = req.body;
+  const { type, title, genre, artist } = req.body;
 
   const s3 = new AWS.S3({
     accessKeyId: process.env.AWS_ACCESS_KEY_ID,
@@ -138,6 +138,7 @@ const createSong = asyncHandler(async (req, res, next) => {
     type,
     title,
     genre,
+    artist,
     songUrl: audioUrl,
     image: imageUrl,
   };
@@ -147,4 +148,18 @@ const createSong = asyncHandler(async (req, res, next) => {
   res.status(200).json({ success: true, data: song});
 });
 
-export { getSongs, getSong, updateSong, deleteSong, createSong };
+// @route   GET /api/v1/songs/search?title='loving you'
+// @desc    Search For a Song
+// @access  Public
+const searchSong = asyncHandler(async (req, res, next) => {
+
+  const title = req.query.title;
+
+  const regexPattern = new RegExp(String(title), "i");
+
+  const song = await Song.find({ title: regexPattern });
+
+  res.status(200).json({ success: true, data: song });
+});
+
+export { getSongs, getSong, updateSong, deleteSong, createSong, searchSong };
